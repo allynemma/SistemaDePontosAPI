@@ -170,3 +170,4 @@ C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net8.0\SistemaDePontos
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net8.0\SistemaDePontosAPI.genruntimeconfig.cache
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net8.0\ref\SistemaDePontosAPI.dll
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net8.0\SistemaDePontosAPI.sourcelink.json

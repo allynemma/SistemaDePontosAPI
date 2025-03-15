@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.WebEncoders.Testing;
+using Microsoft.EntityFrameworkCore;
 using SistemaDePontosAPI.Model;
 
 namespace SistemaDePontosAPI.Controllers
@@ -9,65 +9,88 @@ namespace SistemaDePontosAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ILogger<UsersController> _logger;
+        private readonly Context _context;
 
-        public UsersController(ILogger<UsersController> logger)
+        public UsersController(ILogger<UsersController> logger, Context context)
         {
             _logger = logger;
+            _context = context;
         }
 
         [HttpPost(Name = "PostUsers")]
-        public void Post(string Name, string Password, string Email, string role)
+        public async Task<IActionResult> Post([FromBody] Users user)
         {
-            using (Context ctx = new Context())
+            if (user == null)
             {
-                Users users = new Users()
-                {
-                    Name = Name,
-                    Password = Password,
-                    Email = Email,
-                    Role = role
-                };
-                ctx.Users.Add(users);
-                ctx.SaveChanges();
+                _logger.LogWarning("Tentativa de criar usuário com dados nulos");
+                return BadRequest("Dados inválidos");
             }
+
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(Get), new { id = user.Id }, user);
         }
+
         [HttpGet(Name = "GetUsers")]
-        public IActionResult Get()
+        public async Task<IActionResult> Get(int? id)
         {
-            using (Context ctx = new Context()) 
+            if (id.HasValue)
             {
-                var users = ctx.Users.ToList();
+                var users = await _context.Users.FindAsync(id);
+                if (users == null)
+                {
+                    _logger.LogWarning($"Usuário com id {id} não encontrado.");
+                    return NotFound($"Usuário com id {id} não encontrado.");
+                }
                 return Ok(users);
-            } 
-        }
-        [HttpPut(Name = "PutUsers")]
-        public void Put(int id, [FromBody] Users updateUser)
-        {
-            using (Context ctx = new Context())
-            {
-                var user = ctx.Users.FirstOrDefault(x => x.Id == id);
-                if (user != null)
-                {
-                    ctx.Entry(updateUser).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    ctx.SaveChanges();
-                }
             }
+            var user = _context.Users.Select(index => new Users
+            {
+                Id = index.Id,
+                Name = index.Name,
+                Email = index.Email,
+                Password = index.Password,
+                Role = index.Role,
+            }).ToArray();
+            return Ok (user);
         }
 
-        [HttpDelete(Name = "DeleteUser")]
-        public void Delete(int id)
+        [HttpPut("{id}", Name = "PutUsers")]
+        public async Task<IActionResult> Put(int id, [FromBody] Users updateUser)
         {
-            using (Context ctx = new Context())
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
             {
-                var user = ctx.Users.FirstOrDefault(x => x.Id == id);
-                if (user != null)
-                {
-                    ctx.Users.Remove(user);
-                    ctx.SaveChanges();
-                }
+                _logger.LogWarning($"Usuário com id {id} não encontrado para atualização.");
+                return NotFound($"Usuário com id {id} não encontrado.");
             }
+
+            user.Name = updateUser.Name;
+            user.Password = updateUser.Password;
+            user.Email = updateUser.Email;
+            user.Role = updateUser.Role;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
         }
 
+        [HttpDelete("{id}", Name = "DeleteUser")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                _logger.LogWarning($"Usuário com id {id} não encontrado para exclusão.");
+                return NotFound($"Usuário com id {id} não encontrado.");
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
-
 }
