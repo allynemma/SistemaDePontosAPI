@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SistemaDePontosAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0ce4900e612ac5cf9a4ae6c1c0497c8ce060d627")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e2e1fc1370c7931bc97340f398ae44374c57f576")]
 [assembly: System.Reflection.AssemblyProductAttribute("SistemaDePontosAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SistemaDePontosAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

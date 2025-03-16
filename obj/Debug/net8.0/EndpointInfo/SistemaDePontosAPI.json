@@ -241,12 +241,11 @@
         }
       }
     },
-    "/Users": {
+    "/api/Users/register": {
       "post": {
         "tags": [
           "Users"
         ],
-        "operationId": "PostUsers",
         "requestBody": {
           "content": {
             "application/json": {
@@ -271,7 +270,37 @@
             "description": "OK"
           }
         }
-      },
+      }
+    },
+    "/api/Users/auth/login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "senha",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users": {
       "get": {
         "tags": [
           "Users"
@@ -294,7 +323,7 @@
         }
       }
     },
-    "/Users/{id}": {
+    "/api/Users/{id}": {
       "put": {
         "tags": [
           "Users"

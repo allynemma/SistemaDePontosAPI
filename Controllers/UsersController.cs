@@ -1,24 +1,32 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SistemaDePontosAPI.Model;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace SistemaDePontosAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly ILogger<UsersController> _logger;
         private readonly Context _context;
+        private readonly IConfiguration _configuration;
 
-        public UsersController(ILogger<UsersController> logger, Context context)
+        public UsersController(ILogger<UsersController> logger, Context context, IConfiguration configuration)
         {
             _logger = logger;
             _context = context;
+            _configuration = configuration;
         }
 
-        [HttpPost(Name = "PostUsers")]
-        public async Task<IActionResult> Post([FromBody] Users user)
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] Users user)
         {
             if (user == null)
             {
@@ -29,9 +37,42 @@ namespace SistemaDePontosAPI.Controllers
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(Get), new { id = user.Id }, user);
+            var response = new
+            {
+                user.Id,
+                message = "Usuário criado com sucesso"
+            };
+
+            return CreatedAtAction(nameof(Get), new { id = user.Id }, response);
         }
 
+        [AllowAnonymous]
+        [HttpPost("auth/login")]
+        public async Task<IActionResult> Login(string email, string senha)
+        {
+            if (email == null || senha == null)
+            {
+                _logger.LogWarning("Tentativa de login com dados nulos");
+                return BadRequest("Dados inválidos");
+            }
+            var userDb = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == senha);
+            if (userDb == null)
+            {
+                _logger.LogWarning($"Usuário com email {email} não encontrado.");
+                return NotFound("Usuário não encontrado");
+            }
+            var token = GenerateJwtToken(userDb.Email);
+
+            var response = new
+            {
+                token = token,
+                userDb.Id
+            };
+
+            return Ok(response);
+        }
+
+        [AllowAnonymous]
         [HttpGet(Name = "GetUsers")]
         public async Task<IActionResult> Get(int? id)
         {
@@ -56,6 +97,7 @@ namespace SistemaDePontosAPI.Controllers
             return Ok (user);
         }
 
+        [AllowAnonymous]
         [HttpPut("{id}", Name = "PutUsers")]
         public async Task<IActionResult> Put(int id, [FromBody] Users updateUser)
         {
@@ -77,6 +119,7 @@ namespace SistemaDePontosAPI.Controllers
             return Ok(user);
         }
 
+        [AllowAnonymous]
         [HttpDelete("{id}", Name = "DeleteUser")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -91,6 +134,29 @@ namespace SistemaDePontosAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpPost("generate-token")]
+        private string GenerateJwtToken(string email)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("123456781234567812345678123456781234")); // Automatizar depois
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(60), // Automatizar depois
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token); // Retornando a string do token
         }
     }
 }
