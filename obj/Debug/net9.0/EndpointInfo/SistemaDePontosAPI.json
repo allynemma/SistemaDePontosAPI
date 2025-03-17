@@ -15,17 +15,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PunchClock"
+                "$ref": "#/components/schemas/PunchClockType"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/PunchClock"
+                "$ref": "#/components/schemas/PunchClockType"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/PunchClock"
+                "$ref": "#/components/schemas/PunchClockType"
               }
             }
           }
@@ -35,12 +35,13 @@
             "description": "OK"
           }
         }
-      },
+      }
+    },
+    "/PunchClock/history": {
       "get": {
         "tags": [
           "PunchClock"
         ],
-        "operationId": "GetPunchClock",
         "parameters": [
           {
             "name": "id",
@@ -48,6 +49,14 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -431,9 +440,6 @@
   "components": {
     "schemas": {
       "PunchClock": {
-        "required": [
-          "users"
-        ],
         "type": "object",
         "properties": {
           "id": {
@@ -444,8 +450,8 @@
             "type": "integer",
             "format": "int32"
           },
-          "users": {
-            "$ref": "#/components/schemas/Users"
+          "punchClockType": {
+            "$ref": "#/components/schemas/PunchClockType"
           },
           "timestamp": {
             "type": "string",
@@ -453,6 +459,14 @@
           }
         },
         "additionalProperties": false
+      },
+      "PunchClockType": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "format": "int32"
       },
       "Settings": {
         "type": "object",

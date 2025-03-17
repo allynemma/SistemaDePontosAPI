@@ -3,12 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\controllers\\punchclockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|solutionrelative:controllers\\punchclockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -17,18 +13,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\model\\punchclock.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|solutionrelative:model\\punchclock.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\controllers\\settingscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|solutionrelative:controllers\\settingscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\model\\settings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|solutionrelative:model\\settings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|c:\\users\\allyne\\source\\repos\\sistemadepontosapi\\controllers\\punchclockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B090E05A-48F7-468C-A5E9-7068BA096FD4}|SistemaDePontosAPI.csproj|solutionrelative:controllers\\punchclockcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,102 +22,50 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\appsettings.json",
-              "RelativeDocumentMoniker": "appsettings.json",
-              "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\appsettings.json",
-              "RelativeToolTip": "appsettings.json",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAAA0AAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-03-16T14:31:58.108Z",
-              "IsPinned": true,
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAABQAAAAAAAAAAAAwwB8AAABgAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-16T14:33:44.122Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Settings.cs",
-              "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Model\\Settings.cs",
-              "RelativeDocumentMoniker": "Model\\Settings.cs",
-              "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Model\\Settings.cs",
-              "RelativeToolTip": "Model\\Settings.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-14T20:41:59.187Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "PunchClock.cs",
-              "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Model\\PunchClock.cs",
-              "RelativeDocumentMoniker": "Model\\PunchClock.cs",
-              "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Model\\PunchClock.cs",
-              "RelativeToolTip": "Model\\PunchClock.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-14T19:01:40.134Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "UsersController.cs",
               "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Controllers\\UsersController.cs",
               "RelativeDocumentMoniker": "Controllers\\UsersController.cs",
               "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Controllers\\UsersController.cs",
               "RelativeToolTip": "Controllers\\UsersController.cs",
-              "ViewState": "AgIAAIsAAAAAAAAAAIAywJMAAABXAAAAAAAAAA==",
+              "ViewState": "AgIAAEEAAAAAAAAAAADwv0EAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-12T12:36:00.188Z",
+              "WhenOpened": "2025-03-17T12:09:23.252Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "SettingsController.cs",
-              "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Controllers\\SettingsController.cs",
-              "RelativeDocumentMoniker": "Controllers\\SettingsController.cs",
-              "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Controllers\\SettingsController.cs",
-              "RelativeToolTip": "Controllers\\SettingsController.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAA1wBIAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "PunchClock.cs",
+              "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Model\\PunchClock.cs",
+              "RelativeDocumentMoniker": "Model\\PunchClock.cs",
+              "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Model\\PunchClock.cs",
+              "RelativeToolTip": "Model\\PunchClock.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABMAAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T17:48:40.147Z",
+              "WhenOpened": "2025-03-16T15:45:48.793Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 0,
               "Title": "PunchClockController.cs",
               "DocumentMoniker": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Controllers\\PunchClockController.cs",
               "RelativeDocumentMoniker": "Controllers\\PunchClockController.cs",
               "ToolTip": "C:\\Users\\Allyne\\source\\repos\\SistemaDePontosAPI\\Controllers\\PunchClockController.cs",
               "RelativeToolTip": "Controllers\\PunchClockController.cs",
-              "ViewState": "AgIAAD4AAAAAAAAAAAAIwA0AAABAAAAAAAAAAA==",
+              "ViewState": "AgIAAEcAAAAAAAAAAAAAAEwAAABEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-13T16:55:24.597Z"
+              "WhenOpened": "2025-03-13T16:55:24.597Z",
+              "EditorCaption": ""
             }
           ]
         }

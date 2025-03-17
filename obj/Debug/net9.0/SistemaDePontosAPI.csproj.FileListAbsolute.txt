@@ -159,10 +159,10 @@ C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\staticwebassets
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\staticwebassets\msbuild.buildMultiTargeting.SistemaDePontosAPI.props
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\staticwebassets\msbuild.buildTransitive.SistemaDePontosAPI.props
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\staticwebassets.pack.json
-C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\SistemaD.10FE37AA.Up2Date
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\SistemaDePontosAPI.dll
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\refint\SistemaDePontosAPI.dll
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\SistemaDePontosAPI.pdb
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\SistemaDePontosAPI.genruntimeconfig.cache
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\ref\SistemaDePontosAPI.dll
+C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

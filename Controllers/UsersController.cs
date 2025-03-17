@@ -61,7 +61,9 @@ namespace SistemaDePontosAPI.Controllers
                 _logger.LogWarning($"Usuário com email {email} não encontrado.");
                 return NotFound("Usuário não encontrado");
             }
-            var token = GenerateJwtToken(userDb.Email);
+            var token = GenerateJwtToken(userDb.Email, userDb.Id);
+
+            HttpContext.Items["AuthToken"] = token;
 
             var response = new
             {
@@ -137,13 +139,14 @@ namespace SistemaDePontosAPI.Controllers
         }
 
         [HttpPost("generate-token")]
-        private string GenerateJwtToken(string email)
+        private string GenerateJwtToken(string email, int userId)
         {
             var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+             {
+        new Claim(JwtRegisteredClaimNames.Sub, email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim("UserId", userId.ToString()) // Adiciona o ID do usuário como uma claim
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("123456781234567812345678123456781234")); // Automatizar depois
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -158,5 +161,6 @@ namespace SistemaDePontosAPI.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token); // Retornando a string do token
         }
+
     }
 }
