@@ -48,14 +48,14 @@ namespace SistemaDePontosAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost("auth/login")]
-        public async Task<IActionResult> Login(string email, string senha)
+        public IActionResult Login(string email, string password) // Alterado de 'senha' para 'password'
         {
-            if (email == null || senha == null)
+            if (email == null || password == null)
             {
                 _logger.LogWarning("Tentativa de login com dados nulos");
                 return BadRequest("Dados inválidos");
             }
-            var userDb = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == senha);
+            var userDb = _context.Users.FirstOrDefault(u => u.Email == email && u.Password == password);
             if (userDb == null)
             {
                 _logger.LogWarning($"Usuário com email {email} não encontrado.");
@@ -73,6 +73,7 @@ namespace SistemaDePontosAPI.Controllers
 
             return Ok(response);
         }
+
 
         [AllowAnonymous]
         [HttpGet(Name = "GetUsers")]
@@ -96,13 +97,19 @@ namespace SistemaDePontosAPI.Controllers
                 Password = index.Password,
                 Role = index.Role,
             }).ToArray();
-            return Ok (user);
+            return Ok(user);
         }
 
         [AllowAnonymous]
         [HttpPut("{id}", Name = "PutUsers")]
         public async Task<IActionResult> Put(int id, [FromBody] Users updateUser)
         {
+            if (updateUser == null)
+            {
+                _logger.LogWarning("Tentativa de atualizar usuário com dados nulos");
+                return BadRequest("Dados inválidos");
+            }
+
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
@@ -142,11 +149,11 @@ namespace SistemaDePontosAPI.Controllers
         private string GenerateJwtToken(string email, int userId)
         {
             var claims = new[]
-             {
-        new Claim(JwtRegisteredClaimNames.Sub, email),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new Claim("UserId", userId.ToString()) // Adiciona o ID do usuário como uma claim
-    };
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("UserId", userId.ToString()) // Adiciona o ID do usuário como uma claim
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("123456781234567812345678123456781234")); // Automatizar depois
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -161,6 +168,5 @@ namespace SistemaDePontosAPI.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token); // Retornando a string do token
         }
-
     }
 }

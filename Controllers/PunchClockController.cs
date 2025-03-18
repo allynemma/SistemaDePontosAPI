@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaDePontosAPI.Model;
 using System;
@@ -19,8 +20,14 @@ namespace SistemaDePontosAPI.Controllers
             _context = context;
         }
 
+        public PunchClockController(Context context)
+        {
+            _context = context;
+        }
+
+        [Authorize]
         [HttpPost(Name = "PostPunchClock")]
-        public async Task<IActionResult> ResgistroDePonto([FromBody]PunchClockType punchClockType)
+        public IActionResult ResgistroDePonto([FromBody] PunchClockType punchClockType)
         {
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
 
@@ -38,15 +45,27 @@ namespace SistemaDePontosAPI.Controllers
 
             int userId = int.Parse(userIdClaim.Value);
 
+            if (punchClockType == PunchClockType.CheckIn && HasCheckedInToday(userId))
+            {
+                _logger.LogWarning("Usuário já fez check-in hoje");
+                return BadRequest("Usuário já fez check-in hoje");
+            }
+
+            if (punchClockType == PunchClockType.CheckOut && HasCheckedOutToday(userId))
+            {
+                _logger.LogWarning("Usuário já fez check-out hoje");
+                return BadRequest("Usuário já fez check-out hoje");
+            }
+
             var punchClock = new PunchClock
             {
                 UserId = userId,
-                Timestamp = DateTime.Now
-
+                Timestamp = DateTime.Now,
+                PunchClockType = punchClockType
             };
 
-            await _context.PunchClocks.AddAsync(punchClock);
-            await _context.SaveChangesAsync();
+            _context.PunchClocks.Add(punchClock);
+            _context.SaveChanges();
 
             var response = new
             {
@@ -57,12 +76,13 @@ namespace SistemaDePontosAPI.Controllers
             return CreatedAtAction(nameof(Historico), new { id = punchClock.Id }, response);
         }
 
+        [Authorize]
         [HttpGet("history")]
-        public async Task<IActionResult> Historico(int? id, DateTime? date)
+        public IActionResult Historico(int? id, DateTime? date)
         {
             if (id.HasValue)
             {
-                var punchClock = await _context.PunchClocks.FindAsync(id);
+                var punchClock = _context.PunchClocks.Find(id);
                 if (punchClock == null)
                 {
                     _logger.LogWarning($"PunchClock com id {id} não encontrado.");
@@ -70,11 +90,6 @@ namespace SistemaDePontosAPI.Controllers
                 }
                 return Ok(punchClock);
             }
-
-            var token = HttpContext.Items["AuthToken"] as string;
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", $"{token}");
-            client.DefaultRequestHeaders.Add("Custom-Header", "valor");
 
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
 
@@ -93,7 +108,7 @@ namespace SistemaDePontosAPI.Controllers
                 punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date == date.Value.Date);
             }
 
-            var punchClocks = await punchClocksQuery
+            var punchClocks = punchClocksQuery
                 .Where(p => p.UserId == userId)
                 .Select(p => new
                 {
@@ -102,7 +117,7 @@ namespace SistemaDePontosAPI.Controllers
                     p.Timestamp,
                     p.PunchClockType
                 })
-                .ToListAsync();
+                .ToList();
 
             var response = new
             {
@@ -115,32 +130,30 @@ namespace SistemaDePontosAPI.Controllers
             return Ok(response);
         }
 
-
         [HttpPut("{id}", Name = "PutPunchClocks")]
-        public async Task<IActionResult> Put(int id, [FromBody] PunchClock punchClocks)
+        public IActionResult Put(int id, [FromBody] PunchClock punchClocks)
         {
-            var punchClock = await _context.PunchClocks.FindAsync(id);
+            var punchClock = _context.PunchClocks.Find(id);
             if (punchClock == null)
             {
                 _logger.LogWarning($"Usuário com id {id} não encontrado para atualização.");
                 return NotFound($"Usuário com id {id} não encontrado.");
             }
 
-            punchClock.Id = punchClocks.Id;
             punchClock.UserId = punchClocks.UserId;
             punchClock.Timestamp = punchClocks.Timestamp;
-            //punchClock.Users = punchClocks.Users;
+            punchClock.PunchClockType = punchClocks.PunchClockType;
 
             _context.PunchClocks.Update(punchClock);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return Ok(punchClocks);
         }
 
         [HttpDelete("{id}", Name = "DeletePunchClocks")]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
-            var punchClocks = await _context.PunchClocks.FindAsync(id);
+            var punchClocks = _context.PunchClocks.Find(id);
             if (punchClocks == null)
             {
                 _logger.LogWarning($"PunchClock com id {id} não encontrado para exclusão.");
@@ -148,9 +161,20 @@ namespace SistemaDePontosAPI.Controllers
             }
 
             _context.PunchClocks.Remove(punchClocks);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return NoContent();
+        }
+        private bool HasCheckedInToday(int userId)
+        {
+            var today = DateTime.Today;
+            return _context.PunchClocks.Any(p => p.UserId == userId && p.Timestamp.Date == today && p.PunchClockType == PunchClockType.CheckIn);
+        }
+
+        private bool HasCheckedOutToday(int userId)
+        {
+            var today = DateTime.Today;
+            return _context.PunchClocks.Any(p => p.UserId == userId && p.Timestamp.Date == today && p.PunchClockType == PunchClockType.CheckOut);
         }
     }
 }

@@ -17,9 +17,9 @@ public class Context : DbContext
         }
     }
 
-    public DbSet<Model.Users> Users { get; set; }
-    public DbSet<Model.PunchClock> PunchClocks { get; set; }
-    public DbSet<Model.Settings> Settings { get; set; }
+    public virtual DbSet<Model.Users> Users { get; set; }
+    public virtual DbSet<Model.PunchClock> PunchClocks { get; set; }
+    public virtual DbSet<Model.Settings> Settings { get; set; }
 
 
 }
