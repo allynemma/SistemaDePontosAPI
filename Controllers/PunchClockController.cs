@@ -78,7 +78,7 @@ namespace SistemaDePontosAPI.Controllers
 
         [Authorize]
         [HttpGet("history")]
-        public IActionResult Historico(int? id, DateTime? date)
+        public IActionResult Historico(int? id, DateTime? dataInicio, DateTime? dataFim)
         {
             if (id.HasValue)
             {
@@ -91,43 +91,80 @@ namespace SistemaDePontosAPI.Controllers
                 return Ok(punchClock);
             }
 
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
-
-            if (userIdClaim == null)
+            if (dataInicio.HasValue && dataFim.HasValue)
             {
-                _logger.LogWarning("Tentativa de criar ponto sem usuário autenticado");
-                return BadRequest("Usuário não autenticado");
-            }
-
-            int userId = int.Parse(userIdClaim.Value);
-
-            var punchClocksQuery = _context.PunchClocks.AsQueryable();
-
-            if (date.HasValue)
-            {
-                punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date == date.Value.Date);
-            }
-
-            var punchClocks = punchClocksQuery
-                .Where(p => p.UserId == userId)
-                .Select(p => new
+                if (dataInicio > dataFim)
                 {
-                    p.Id,
-                    p.UserId,
-                    p.Timestamp,
-                    p.PunchClockType
-                })
-                .ToList();
+                    _logger.LogWarning("Data de início não pode ser maior que a data final");
+                    return BadRequest("Data de início não pode ser maior que a data final");
+                }
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
 
-            var response = new
+                if (userIdClaim == null)
+                {
+                    _logger.LogWarning("Tentativa de criar ponto sem usuário autenticado");
+                    return BadRequest("Usuário não autenticado");
+                }
+
+                int userId = int.Parse(userIdClaim.Value);
+
+                var punchClocksQuery = _context.PunchClocks.AsQueryable();
+                punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date >= dataInicio.Value.Date && p.Timestamp.Date <= dataFim.Value.Date);
+
+
+                var punchClocks = punchClocksQuery
+                    .Where(p => p.UserId == userId)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.UserId,
+                        p.Timestamp,
+                        p.PunchClockType
+                    })
+                    .ToList();
+
+                var response = new
+                {
+                    date = punchClocks.Where(p => p.Timestamp.Date >= dataInicio && p.Timestamp.Date <= dataFim),
+                    checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
+                    checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
+                    hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
+                };
+
+
+                return Ok(response);
+            }
+            else
             {
-                date = date?.ToString("dd/MM/yyyy"),
-                checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
-                checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
-                hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
-            };
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+                if (userIdClaim == null)
+                {
+                    _logger.LogWarning("Tentativa de criar ponto sem usuário autenticado");
+                    return BadRequest("Usuário não autenticado");
+                }
+                int userId = int.Parse(userIdClaim.Value);
+                var punchClocksQuery = _context.PunchClocks.AsQueryable();
+                var punchClocks = punchClocksQuery
+                    .Where(p => p.UserId == userId)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.UserId,
+                        p.Timestamp,
+                        p.PunchClockType
+                    })
+                    .ToList();
+                var response = new
+                {
+                    date = punchClocks,
+                    checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
+                    checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
+                    hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
+                };
+                return Ok(response);
+            }
 
-            return Ok(response);
+
         }
 
         [HttpPut("{id}", Name = "PutPunchClocks")]
