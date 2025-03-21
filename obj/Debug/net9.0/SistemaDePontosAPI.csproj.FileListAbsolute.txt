@@ -166,3 +166,4 @@ C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\SistemaDePontos
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\SistemaDePontosAPI.genruntimeconfig.cache
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\ref\SistemaDePontosAPI.dll
 C:\Users\Allyne\source\repos\SistemaDePontosAPI\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+C:\Users\Allyne\source\repos\SistemaDePontosAPI\bin\Debug\net9.0\CsvHelper.dll

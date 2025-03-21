@@ -35,6 +35,35 @@
             "description": "OK"
           }
         }
+      },
+      "get": {
+        "tags": [
+          "PunchClock"
+        ],
+        "operationId": "report",
+        "parameters": [
+          {
+            "name": "dataInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "dataFim",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/PunchClock/history": {

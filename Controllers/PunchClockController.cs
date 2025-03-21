@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CsvHelper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaDePontosAPI.Model;
 using System;
+using System.Globalization;
 using System.Net.Http.Headers;
 
 namespace SistemaDePontosAPI.Controllers
@@ -165,6 +167,37 @@ namespace SistemaDePontosAPI.Controllers
             }
 
 
+        }
+
+        [Authorize (Roles = "Admin")]
+        [HttpGet("report")]
+        public IActionResult GerarRelatorio (DateTime dataInicio, DateTime dataFim)
+        {
+            if (dataInicio > dataFim)
+            {
+                _logger.LogWarning("Data de início não pode ser maior que a data final");
+                return BadRequest("Data de início não pode ser maior que a data final");
+            }
+            var punchClocks = _context.PunchClocks
+                .Where(p => p.Timestamp.Date >= dataInicio.Date && p.Timestamp.Date <= dataFim.Date)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.UserId,
+                    p.Timestamp,
+                    p.PunchClockType
+                })
+                .ToList();
+
+            using (var memoryStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memoryStream))
+            using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+            {
+                csvWriter.WriteRecords(punchClocks);
+                streamWriter.Flush();
+                var result = memoryStream.ToArray();
+                return File(result, "text/csv", "relatorio_pontos.csv");
+            }
         }
 
         [HttpPut("{id}", Name = "PutPunchClocks")]

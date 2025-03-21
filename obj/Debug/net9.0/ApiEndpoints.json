@@ -111,6 +111,28 @@
   },
   {
     "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
+    "Method": "GerarRelatorio",
+    "RelativePath": "PunchClock",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dataInicio",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "dataFim",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [],
+    "EndpointName": "report"
+  },
+  {
+    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
     "Method": "Put",
     "RelativePath": "PunchClock/{id}",
     "HttpMethod": "PUT",
