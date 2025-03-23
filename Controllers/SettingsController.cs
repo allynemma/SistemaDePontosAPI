@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaDePontosAPI.Model;
 
 namespace SistemaDePontosAPI.Controllers
@@ -16,9 +17,15 @@ namespace SistemaDePontosAPI.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost(Name = "PostSettings")]
-        public async Task<IActionResult> Post([FromBody] Settings settings)
+        public IActionResult Post([FromBody] Settings settings)
         {
+            if (!User.IsInRole("admin"))
+            {
+                return Unauthorized();
+            }
+
             if (settings == null)
             {
                 _logger.LogWarning("Tentativa de criar settings com dados nulos");
@@ -27,18 +34,23 @@ namespace SistemaDePontosAPI.Controllers
 
             settings.Id = 0;
 
-            await _context.Settings.AddAsync(settings);
-            await _context.SaveChangesAsync();
+            _context.Settings.Add(settings);
+            _context.SaveChanges();
 
             return CreatedAtAction(nameof(Get), new { id = settings.Id }, settings);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpGet(Name = "GetSettings")]
-        public async Task<IActionResult> Get(int? id)
+        public IActionResult Get(int? id)
         {
+            if (!User.IsInRole("admin"))
+            {
+                return Unauthorized();
+            }
             if (id.HasValue)
             {
-                var settings = await _context.Settings.FindAsync(id);
+                var settings = _context.Settings.Find(id);
                 if (settings == null)
                 {
                     _logger.LogWarning($"Settings com id {id} não encontrado.");
@@ -46,19 +58,26 @@ namespace SistemaDePontosAPI.Controllers
                 }
                 return Ok(settings);
             }
+
             var setting = _context.Settings.Select(index => new Settings
             {
                 Id = index.Id,
                 Overtime_Rate = index.Overtime_Rate,
                 Workday_Hours = index.Workday_Hours
             }).ToArray();
+
             return Ok(setting);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}", Name = "PutSettings")]
-        public async Task<IActionResult> Put(int id, [FromBody] Settings settings)
+        public IActionResult Put(int id, [FromBody] Settings settings)
         {
-            var setting = await _context.Settings.FindAsync(id);
+            if (!User.IsInRole("admin"))
+            {
+                return Unauthorized();
+            }
+            var setting = _context.Settings.Find(id);
             if (setting == null)
             {
                 _logger.LogWarning($"Settings com id {id} não encontrado para atualização.");
@@ -69,15 +88,20 @@ namespace SistemaDePontosAPI.Controllers
             setting.Workday_Hours = settings.Workday_Hours;
 
             _context.Settings.Update(setting);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return Ok(setting);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}", Name = "DeleteSettings")]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
-            var setting = await _context.Settings.FindAsync(id);
+            if (!User.IsInRole("admin"))
+            {
+                return Unauthorized();
+            }
+            var setting = _context.Settings.Find(id);
             if (setting == null)
             {
                 _logger.LogWarning($"Settings com id {id} não encontrado para exclusão.");
@@ -85,7 +109,7 @@ namespace SistemaDePontosAPI.Controllers
             }
 
             _context.Settings.Remove(setting);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return NoContent();
         }

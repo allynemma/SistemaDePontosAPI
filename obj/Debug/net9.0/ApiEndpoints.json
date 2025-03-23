@@ -1,5 +1,134 @@
 [
   {
+    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
+    "Method": "ResgistroDePonto",
+    "RelativePath": "api/PunchClock",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "punchClockType",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [],
+    "EndpointName": "PostPunchClock"
+  },
+  {
+    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
+    "Method": "Put",
+    "RelativePath": "api/PunchClock/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "punchClocks",
+        "Type": "SistemaDePontosAPI.Model.PunchClock",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [],
+    "EndpointName": "PutPunchClocks"
+  },
+  {
+    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
+    "Method": "Delete",
+    "RelativePath": "api/PunchClock/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [],
+    "EndpointName": "DeletePunchClocks"
+  },
+  {
+    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
+    "Method": "ListarPontos",
+    "RelativePath": "api/PunchClock/admin/punch-clock",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "dataInicio",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "dataFim",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
+    "Method": "GerarRelatorio",
+    "RelativePath": "api/PunchClock/admin/report",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dataInicio",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "dataFim",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
+    "Method": "Historico",
+    "RelativePath": "api/PunchClock/history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "dataInicio",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "dataFim",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "SistemaDePontosAPI.Controllers.UsersController",
     "Method": "Get",
     "RelativePath": "api/Users",
@@ -88,110 +217,6 @@
         "Name": "user",
         "Type": "SistemaDePontosAPI.Model.Users",
         "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
-    "Method": "ResgistroDePonto",
-    "RelativePath": "PunchClock",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "punchClockType",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [],
-    "EndpointName": "PostPunchClock"
-  },
-  {
-    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
-    "Method": "GerarRelatorio",
-    "RelativePath": "PunchClock",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "dataInicio",
-        "Type": "System.DateTime",
-        "IsRequired": false
-      },
-      {
-        "Name": "dataFim",
-        "Type": "System.DateTime",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": [],
-    "EndpointName": "report"
-  },
-  {
-    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
-    "Method": "Put",
-    "RelativePath": "PunchClock/{id}",
-    "HttpMethod": "PUT",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      },
-      {
-        "Name": "punchClocks",
-        "Type": "SistemaDePontosAPI.Model.PunchClock",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [],
-    "EndpointName": "PutPunchClocks"
-  },
-  {
-    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
-    "Method": "Delete",
-    "RelativePath": "PunchClock/{id}",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [],
-    "EndpointName": "DeletePunchClocks"
-  },
-  {
-    "ContainingType": "SistemaDePontosAPI.Controllers.PunchClockController",
-    "Method": "Historico",
-    "RelativePath": "PunchClock/history",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "dataInicio",
-        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "dataFim",
-        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
       }
     ],
     "ReturnTypes": []
