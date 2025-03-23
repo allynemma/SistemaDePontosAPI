@@ -82,6 +82,15 @@ namespace SistemaDePontosAPI.Controllers
         [HttpGet("history")]
         public IActionResult Historico(int? id, DateTime? dataInicio, DateTime? dataFim)
         {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+            if (userIdClaim == null)
+            {
+                _logger.LogWarning("Tentativa de criar ponto sem usuário autenticado");
+                return BadRequest("Usuário não autenticado");
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+
             if (id.HasValue)
             {
                 var punchClock = _context.PunchClocks.Find(id);
@@ -100,15 +109,6 @@ namespace SistemaDePontosAPI.Controllers
                     _logger.LogWarning("Data de início não pode ser maior que a data final");
                     return BadRequest("Data de início não pode ser maior que a data final");
                 }
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
-
-                if (userIdClaim == null)
-                {
-                    _logger.LogWarning("Tentativa de criar ponto sem usuário autenticado");
-                    return BadRequest("Usuário não autenticado");
-                }
-
-                int userId = int.Parse(userIdClaim.Value);
 
                 var punchClocksQuery = _context.PunchClocks.AsQueryable();
                 punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date >= dataInicio.Value.Date && p.Timestamp.Date <= dataFim.Value.Date);
@@ -138,13 +138,6 @@ namespace SistemaDePontosAPI.Controllers
             }
             else
             {
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
-                if (userIdClaim == null)
-                {
-                    _logger.LogWarning("Tentativa de criar ponto sem usuário autenticado");
-                    return BadRequest("Usuário não autenticado");
-                }
-                int userId = int.Parse(userIdClaim.Value);
                 var punchClocksQuery = _context.PunchClocks.AsQueryable();
                 var punchClocks = punchClocksQuery
                     .Where(p => p.UserId == userId)
@@ -172,125 +165,53 @@ namespace SistemaDePontosAPI.Controllers
         [HttpGet("admin/punch-clock")]
         public IActionResult ListarPontos(int ? userId, DateTime? dataInicio, DateTime? dataFim)
         {
-            if (!dataInicio.HasValue && !dataFim.HasValue)
+            if (!User.IsInRole("admin"))
             {
+                return Unauthorized();
+            }
+            if (dataInicio.HasValue && dataFim.HasValue && dataInicio > dataFim)
+            {
+                _logger.LogWarning("Data de início não pode ser maior do que data fim");
+                return BadRequest("Data de início não pode ser maior do que data fim");
+            }
+            var punchClocksQuery = _context.PunchClocks.AsQueryable();
 
-                var punchClocks = _context.PunchClocks.Join
-                    (
-                        _context.Users,
-                        p => p.UserId,
-                        u => u.Id,
-                        (p, u) => new
-                        {
-                            p.Id,
-                            p.UserId,
-                            p.Timestamp,
-                            p.PunchClockType,
-                            u.Name
-                        }
-                    ).ToList();
-                var response = new
-                {
-                    employee = punchClocks.Select(p => p.UserId),
-                    date = punchClocks.Select(p => p.Timestamp.Date),
-                    checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
-                    checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
-                    hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
-                };
-                return Ok(response);
-            }
-            else
+            if (userId.HasValue)
             {
-                if (dataInicio > dataFim)
-                {
-                    _logger.LogWarning("Data de início não pode ser maior que a data final");
-                    return BadRequest("Data de início não pode ser maior que a data final");
-                }
-                if (!dataInicio.HasValue)
-                {
-                    var punchClocks = _context.PunchClocks
-                        .Where(p => p.Timestamp.Date <= dataFim.Value.Date)
-                        .Join
-                    (
-                        _context.Users,
-                        p => p.UserId,
-                        u => u.Id,
-                        (p, u) => new
-                        {
-                            p.Id,
-                            p.UserId,
-                            p.Timestamp,
-                            p.PunchClockType,
-                            u.Name
-                        }
-                    ).ToList();
-                    var response = new
-                    {
-                        employee = punchClocks.Select(p => p.UserId),
-                        date = punchClocks.Select(p => p.Timestamp.Date),
-                        checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
-                        checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
-                        hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
-                    };
-                    return Ok(response);
-                }
-                if (!dataFim.HasValue)
-                {
-                    var punchClocks = _context.PunchClocks
-                        .Where(p => p.Timestamp.Date >= dataInicio.Value.Date)
-                        .Join
-                    (
-                        _context.Users,
-                        p => p.UserId,
-                        u => u.Id,
-                        (p, u) => new
-                        {
-                            p.Id,
-                            p.UserId,
-                            p.Timestamp,
-                            p.PunchClockType,
-                            u.Name
-                        }
-                    ).ToList();
-                    var response = new
-                    {
-                        employee = punchClocks.Select(p => p.UserId),
-                        date = punchClocks.Select(p => p.Timestamp.Date),
-                        checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
-                        checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
-                        hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
-                    };
-                    return Ok(response);
-                }
-                else
-                {
-                        var punchClocks = _context.PunchClocks
-                            .Where(p => p.Timestamp.Date <= dataFim.Value.Date && p.Timestamp.Date >= dataInicio.Value.Date)
-                            .Join
-                        (
-                            _context.Users,
-                            p => p.UserId,
-                            u => u.Id,
-                            (p, u) => new
-                            {
-                                p.Id,
-                                p.UserId,
-                                p.Timestamp,
-                                p.PunchClockType,
-                                u.Name
-                            }
-                        ).ToList();
-                        var response = new
-                        {
-                            employee = punchClocks.Select(p => p.UserId),
-                            date = punchClocks.Select(p => p.Timestamp.Date),
-                            checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
-                            checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
-                            hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
-                        };
-                        return Ok(response);
-                }
+                punchClocksQuery = punchClocksQuery.Where(p => p.UserId == userId);
             }
+            if (dataInicio.HasValue)
+            {
+                punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date >= dataInicio.Value.Date);
+            }
+            if (dataFim.HasValue)
+            {
+                punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date <= dataFim.Value.Date);
+            }
+            var punchClocks = punchClocksQuery
+                .Join
+                (
+                    _context.Users,
+                    p => p.UserId,
+                    u => u.Id,
+                    (p, u) => new
+                    {
+                        p.Id,
+                        p.UserId,
+                        p.Timestamp,
+                        p.PunchClockType,
+                        u.Name
+                    }
+                ).ToList();
+            var response = new
+            {
+                employee = punchClocks.Select(p => p.UserId),
+                date = punchClocks.Select(p => p.Timestamp.Date),
+                checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
+                checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
+                hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
+            };
+            return Ok(response);
             
         }
 
@@ -299,6 +220,10 @@ namespace SistemaDePontosAPI.Controllers
         [HttpGet("admin/report")]
         public IActionResult GerarRelatorio (DateTime dataInicio, DateTime dataFim)
         {
+            if (!User.IsInRole("admin"))
+            {
+                return Unauthorized();
+            }
             if (dataInicio > dataFim)
             {
                 _logger.LogWarning("Data de início não pode ser maior que a data final");
