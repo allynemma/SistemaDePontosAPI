@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using SistemaDePontosAPI.Model;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using SistemaDePontosAPI.Services;
 
 namespace SistemaDePontosAPI.Controllers
 {
@@ -14,14 +10,12 @@ namespace SistemaDePontosAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ILogger<UsersController> _logger;
-        private readonly Context _context;
-        private readonly IConfiguration _configuration;
+        private readonly IUserService _userService;
 
-        public UsersController(ILogger<UsersController> logger, Context context, IConfiguration configuration)
+        public UsersController(ILogger<UsersController> logger, IUserService userService)
         {
             _logger = logger;
-            _context = context;
-            _configuration = configuration;
+            _userService = userService;
         }
 
         [AllowAnonymous]
@@ -34,34 +28,35 @@ namespace SistemaDePontosAPI.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            var createdUser = await _userService.Register(user);
 
             var response = new
             {
-                user.Id,
+                createdUser.Id,
                 message = "Usuário criado com sucesso"
             };
 
-            return CreatedAtAction(nameof(Get), new { id = user.Id }, response);
+            return CreatedAtAction(nameof(Get), new { id = createdUser.Id }, response);
         }
 
         [AllowAnonymous]
         [HttpPost("auth/login")]
-        public IActionResult Login(string email, string password) // Alterado de 'senha' para 'password'
+        public IActionResult Login(string email, string password)
         {
             if (email == null || password == null)
             {
                 _logger.LogWarning("Tentativa de login com dados nulos");
                 return BadRequest("Dados inválidos");
             }
-            var userDb = _context.Users.FirstOrDefault(u => u.Email == email && u.Password == password);
+
+            var userDb = _userService.Authenticate(email, password);
             if (userDb == null)
             {
                 _logger.LogWarning($"Usuário com email {email} não encontrado.");
                 return NotFound("Usuário não encontrado");
             }
-            var token = GenerateJwtToken(userDb.Email, userDb.Id);
+
+            var token = _userService.GenerateJwtToken(userDb.Email, userDb.Id);
 
             HttpContext.Items["AuthToken"] = token;
 
@@ -74,30 +69,23 @@ namespace SistemaDePontosAPI.Controllers
             return Ok(response);
         }
 
-
         [AllowAnonymous]
         [HttpGet(Name = "GetUsers")]
         public async Task<IActionResult> Get(int? id)
         {
             if (id.HasValue)
             {
-                var users = await _context.Users.FindAsync(id);
-                if (users == null)
+                var user = await _userService.GetUserById(id.Value);
+                if (user == null)
                 {
                     _logger.LogWarning($"Usuário com id {id} não encontrado.");
                     return NotFound($"Usuário com id {id} não encontrado.");
                 }
-                return Ok(users);
+                return Ok(user);
             }
-            var user = _context.Users.Select(index => new Users
-            {
-                Id = index.Id,
-                Name = index.Name,
-                Email = index.Email,
-                Password = index.Password,
-                Role = index.Role,
-            }).ToArray();
-            return Ok(user);
+
+            var users = await _userService.GetAllUsers();
+            return Ok(users);
         }
 
         [AllowAnonymous]
@@ -110,20 +98,12 @@ namespace SistemaDePontosAPI.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userService.UpdateUser(id, updateUser);
             if (user == null)
             {
                 _logger.LogWarning($"Usuário com id {id} não encontrado para atualização.");
                 return NotFound($"Usuário com id {id} não encontrado.");
             }
-
-            user.Name = updateUser.Name;
-            user.Password = updateUser.Password;
-            user.Email = updateUser.Email;
-            user.Role = updateUser.Role;
-
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
 
             return Ok(user);
         }
@@ -132,41 +112,14 @@ namespace SistemaDePontosAPI.Controllers
         [HttpDelete("{id}", Name = "DeleteUser")]
         public async Task<IActionResult> Delete(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var result = await _userService.DeleteUser(id);
+            if (!result)
             {
                 _logger.LogWarning($"Usuário com id {id} não encontrado para exclusão.");
                 return NotFound($"Usuário com id {id} não encontrado.");
             }
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        [HttpPost("generate-token")]
-        private string GenerateJwtToken(string email, int userId)
-        {
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("UserId", userId.ToString()) // Adiciona o ID do usuário como uma claim
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("123456781234567812345678123456781234")); // Automatizar depois
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(60), // Automatizar depois
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token); // Retornando a string do token
         }
     }
 }

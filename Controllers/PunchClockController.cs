@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaDePontosAPI.Model;
+using SistemaDePontosAPI.Services;
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace SistemaDePontosAPI.Controllers
 {
@@ -14,22 +17,17 @@ namespace SistemaDePontosAPI.Controllers
     public class PunchClockController : ControllerBase
     {
         private readonly ILogger<PunchClockController> _logger;
-        private readonly Context _context;
+        private readonly IPunchClockService _punchClockService;
 
-        public PunchClockController(ILogger<PunchClockController> logger, Context context)
+        public PunchClockController(ILogger<PunchClockController> logger, IPunchClockService punchClockService)
         {
             _logger = logger;
-            _context = context;
-        }
-
-        public PunchClockController(Context context)
-        {
-            _context = context;
+            _punchClockService = punchClockService;
         }
 
         [Authorize]
         [HttpPost(Name = "PostPunchClock")]
-        public IActionResult ResgistroDePonto([FromBody] PunchClockType punchClockType)
+        public async Task<IActionResult> ResgistroDePonto([FromBody] PunchClockType punchClockType)
         {
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
 
@@ -47,27 +45,19 @@ namespace SistemaDePontosAPI.Controllers
 
             int userId = int.Parse(userIdClaim.Value);
 
-            if (punchClockType == PunchClockType.CheckIn && HasCheckedInToday(userId))
+            if (punchClockType == PunchClockType.CheckIn && _punchClockService.HasCheckedInToday(userId))
             {
                 _logger.LogWarning("Usuário já fez check-in hoje");
                 return BadRequest("Usuário já fez check-in hoje");
             }
 
-            if (punchClockType == PunchClockType.CheckOut && HasCheckedOutToday(userId))
+            if (punchClockType == PunchClockType.CheckOut && _punchClockService.HasCheckedOutToday(userId))
             {
                 _logger.LogWarning("Usuário já fez check-out hoje");
                 return BadRequest("Usuário já fez check-out hoje");
             }
 
-            var punchClock = new PunchClock
-            {
-                UserId = userId,
-                Timestamp = DateTime.Now,
-                PunchClockType = punchClockType
-            };
-
-            _context.PunchClocks.Add(punchClock);
-            _context.SaveChanges();
+            var punchClock = await _punchClockService.RegisterPunchClock(userId, punchClockType);
 
             var response = new
             {
@@ -80,7 +70,7 @@ namespace SistemaDePontosAPI.Controllers
 
         [Authorize]
         [HttpGet("history")]
-        public IActionResult Historico(int? id, DateTime? dataInicio, DateTime? dataFim)
+        public async Task<IActionResult> Historico(int? id, DateTime? dataInicio, DateTime? dataFim)
         {
             var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
             if (userIdClaim == null)
@@ -89,11 +79,17 @@ namespace SistemaDePontosAPI.Controllers
                 return BadRequest("Usuário não autenticado");
             }
 
+            if (dataInicio.HasValue && dataFim.HasValue && dataInicio > dataFim)
+            {
+                _logger.LogWarning("Data de início não pode ser maior que a data final");
+                return BadRequest("Data de início não pode ser maior que a data final");
+            }
+
             int userId = int.Parse(userIdClaim.Value);
 
             if (id.HasValue)
             {
-                var punchClock = _context.PunchClocks.Find(id);
+                var punchClock = await _punchClockService.GetPunchClockById(id.Value);
                 if (punchClock == null)
                 {
                     _logger.LogWarning($"PunchClock com id {id} não encontrado.");
@@ -102,107 +98,36 @@ namespace SistemaDePontosAPI.Controllers
                 return Ok(punchClock);
             }
 
-            if (dataInicio.HasValue && dataFim.HasValue)
+            var punchClocks = await _punchClockService.GetPunchClocksByUserId(userId, dataInicio, dataFim);
+
+            var response = new
             {
-                if (dataInicio > dataFim)
-                {
-                    _logger.LogWarning("Data de início não pode ser maior que a data final");
-                    return BadRequest("Data de início não pode ser maior que a data final");
-                }
+                date = punchClocks,
+                checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
+                checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
+                hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
+            };
 
-                var punchClocksQuery = _context.PunchClocks.AsQueryable();
-                punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date >= dataInicio.Value.Date && p.Timestamp.Date <= dataFim.Value.Date);
-
-
-                var punchClocks = punchClocksQuery
-                    .Where(p => p.UserId == userId)
-                    .Select(p => new
-                    {
-                        p.Id,
-                        p.UserId,
-                        p.Timestamp,
-                        p.PunchClockType
-                    })
-                    .ToList();
-
-                var response = new
-                {
-                    date = punchClocks.Where(p => p.Timestamp.Date >= dataInicio && p.Timestamp.Date <= dataFim),
-                    checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
-                    checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
-                    hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
-                };
-
-
-                return Ok(response);
-            }
-            else
-            {
-                var punchClocksQuery = _context.PunchClocks.AsQueryable();
-                var punchClocks = punchClocksQuery
-                    .Where(p => p.UserId == userId)
-                    .Select(p => new
-                    {
-                        p.Id,
-                        p.UserId,
-                        p.Timestamp,
-                        p.PunchClockType
-                    })
-                    .ToList();
-                var response = new
-                {
-                    date = punchClocks,
-                    checkIns = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckIn).Select(p => p.Timestamp.TimeOfDay),
-                    checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
-                    hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
-                };
-                return Ok(response);
-            }
-
-
+            return Ok(response);
         }
+
         [Authorize(Roles = "admin")]
         [HttpGet("admin/punch-clock")]
-        public IActionResult ListarPontos(int ? userId, DateTime? dataInicio, DateTime? dataFim)
+        public async Task<IActionResult> ListarPontos(int? userId, DateTime? dataInicio, DateTime? dataFim)
         {
             if (!User.IsInRole("admin"))
             {
                 return Unauthorized();
             }
+
             if (dataInicio.HasValue && dataFim.HasValue && dataInicio > dataFim)
             {
-                _logger.LogWarning("Data de início não pode ser maior do que data fim");
-                return BadRequest("Data de início não pode ser maior do que data fim");
+                _logger.LogWarning("Data de início não pode ser maior que a data final");
+                return BadRequest("Data de início não pode ser maior que a data final");
             }
-            var punchClocksQuery = _context.PunchClocks.AsQueryable();
 
-            if (userId.HasValue)
-            {
-                punchClocksQuery = punchClocksQuery.Where(p => p.UserId == userId);
-            }
-            if (dataInicio.HasValue)
-            {
-                punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date >= dataInicio.Value.Date);
-            }
-            if (dataFim.HasValue)
-            {
-                punchClocksQuery = punchClocksQuery.Where(p => p.Timestamp.Date <= dataFim.Value.Date);
-            }
-            var punchClocks = punchClocksQuery
-                .Join
-                (
-                    _context.Users,
-                    p => p.UserId,
-                    u => u.Id,
-                    (p, u) => new
-                    {
-                        p.Id,
-                        p.UserId,
-                        p.Timestamp,
-                        p.PunchClockType,
-                        u.Name
-                    }
-                ).ToList();
+            var punchClocks = await _punchClockService.GetAllPunchClocks(userId, dataInicio, dataFim);
+
             var response = new
             {
                 employee = punchClocks.Select(p => p.UserId),
@@ -211,34 +136,26 @@ namespace SistemaDePontosAPI.Controllers
                 checkOuts = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Select(p => p.Timestamp.TimeOfDay),
                 hoursWorked = punchClocks.Where(p => p.PunchClockType == PunchClockType.CheckOut).Sum(p => p.Timestamp.Hour - 8)
             };
+
             return Ok(response);
-            
         }
 
-
-        [Authorize (Roles = "admin")]
+        [Authorize(Roles = "admin")]
         [HttpGet("admin/report")]
-        public IActionResult GerarRelatorio (DateTime dataInicio, DateTime dataFim)
+        public async Task<IActionResult> GerarRelatorio(DateTime dataInicio, DateTime dataFim)
         {
             if (!User.IsInRole("admin"))
             {
                 return Unauthorized();
             }
+
             if (dataInicio > dataFim)
             {
                 _logger.LogWarning("Data de início não pode ser maior que a data final");
                 return BadRequest("Data de início não pode ser maior que a data final");
             }
-            var punchClocks = _context.PunchClocks
-                .Where(p => p.Timestamp.Date >= dataInicio.Date && p.Timestamp.Date <= dataFim.Date)
-                .Select(p => new
-                {
-                    p.Id,
-                    p.UserId,
-                    p.Timestamp,
-                    p.PunchClockType
-                })
-                .ToList();
+
+            var punchClocks = await _punchClockService.GetPunchClocksForReport(dataInicio, dataFim);
 
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))
@@ -252,50 +169,30 @@ namespace SistemaDePontosAPI.Controllers
         }
 
         [HttpPut("{id}", Name = "PutPunchClocks")]
-        public IActionResult Put(int id, [FromBody] PunchClock punchClocks)
+        public async Task<IActionResult> Put(int id, [FromBody] PunchClock punchClocks)
         {
-            var punchClock = _context.PunchClocks.Find(id);
-            if (punchClock == null)
+            var updatedPunchClock = await _punchClockService.UpdatePunchClock(id, punchClocks);
+            if (updatedPunchClock == null)
             {
                 _logger.LogWarning($"Usuário com id {id} não encontrado para atualização.");
                 return NotFound($"Usuário com id {id} não encontrado.");
             }
 
-            punchClock.UserId = punchClocks.UserId;
-            punchClock.Timestamp = punchClocks.Timestamp;
-            punchClock.PunchClockType = punchClocks.PunchClockType;
-
-            _context.PunchClocks.Update(punchClock);
-            _context.SaveChanges();
-
-            return Ok(punchClocks);
+            return Ok(updatedPunchClock);
         }
 
         [HttpDelete("{id}", Name = "DeletePunchClocks")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var punchClocks = _context.PunchClocks.Find(id);
-            if (punchClocks == null)
+            var result = await _punchClockService.DeletePunchClock(id);
+            if (!result)
             {
                 _logger.LogWarning($"PunchClock com id {id} não encontrado para exclusão.");
                 return NotFound($"PunchClock com id {id} não encontrado.");
             }
 
-            _context.PunchClocks.Remove(punchClocks);
-            _context.SaveChanges();
-
             return NoContent();
-        }
-        private bool HasCheckedInToday(int userId)
-        {
-            var today = DateTime.Today;
-            return _context.PunchClocks.Any(p => p.UserId == userId && p.Timestamp.Date == today && p.PunchClockType == PunchClockType.CheckIn);
-        }
-
-        private bool HasCheckedOutToday(int userId)
-        {
-            var today = DateTime.Today;
-            return _context.PunchClocks.Any(p => p.UserId == userId && p.Timestamp.Date == today && p.PunchClockType == PunchClockType.CheckOut);
         }
     }
 }
+

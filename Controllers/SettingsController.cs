@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaDePontosAPI.Model;
+using SistemaDePontosAPI.Services;
+using System.Threading.Tasks;
 
 namespace SistemaDePontosAPI.Controllers
 {
@@ -9,17 +11,17 @@ namespace SistemaDePontosAPI.Controllers
     public class SettingsController : ControllerBase
     {
         private readonly ILogger<SettingsController> _logger;
-        private readonly Context _context;
+        private readonly ISettingsService _settingsService;
 
-        public SettingsController(ILogger<SettingsController> logger, Context context)
+        public SettingsController(ILogger<SettingsController> logger, ISettingsService settingsService)
         {
             _logger = logger;
-            _context = context;
+            _settingsService = settingsService;
         }
 
         [Authorize(Roles = "admin")]
         [HttpPost(Name = "PostSettings")]
-        public IActionResult Post([FromBody] Settings settings)
+        public async Task<IActionResult> Post([FromBody] Settings settings)
         {
             if (!User.IsInRole("admin"))
             {
@@ -32,25 +34,23 @@ namespace SistemaDePontosAPI.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            settings.Id = 0;
+            var createdSettings = await _settingsService.CreateSettings(settings);
 
-            _context.Settings.Add(settings);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(Get), new { id = settings.Id }, settings);
+            return CreatedAtAction(nameof(Get), new { id = createdSettings.Id }, createdSettings);
         }
 
         [Authorize(Roles = "admin")]
         [HttpGet(Name = "GetSettings")]
-        public IActionResult Get(int? id)
+        public async Task<IActionResult> Get(int? id)
         {
             if (!User.IsInRole("admin"))
             {
                 return Unauthorized();
             }
+
             if (id.HasValue)
             {
-                var settings = _context.Settings.Find(id);
+                var settings = await _settingsService.GetSettingsById(id.Value);
                 if (settings == null)
                 {
                     _logger.LogWarning($"Settings com id {id} não encontrado.");
@@ -59,57 +59,44 @@ namespace SistemaDePontosAPI.Controllers
                 return Ok(settings);
             }
 
-            var setting = _context.Settings.Select(index => new Settings
-            {
-                Id = index.Id,
-                Overtime_Rate = index.Overtime_Rate,
-                Workday_Hours = index.Workday_Hours
-            }).ToArray();
-
-            return Ok(setting);
+            var allSettings = await _settingsService.GetAllSettings();
+            return Ok(allSettings);
         }
 
         [Authorize(Roles = "admin")]
         [HttpPut("{id}", Name = "PutSettings")]
-        public IActionResult Put(int id, [FromBody] Settings settings)
+        public async Task<IActionResult> Put(int id, [FromBody] Settings settings)
         {
             if (!User.IsInRole("admin"))
             {
                 return Unauthorized();
             }
-            var setting = _context.Settings.Find(id);
-            if (setting == null)
+
+            var updatedSettings = await _settingsService.UpdateSettings(id, settings);
+            if (updatedSettings == null)
             {
                 _logger.LogWarning($"Settings com id {id} não encontrado para atualização.");
                 return NotFound($"Settings com id {id} não encontrado.");
             }
 
-            setting.Overtime_Rate = settings.Overtime_Rate;
-            setting.Workday_Hours = settings.Workday_Hours;
-
-            _context.Settings.Update(setting);
-            _context.SaveChanges();
-
-            return Ok(setting);
+            return Ok(updatedSettings);
         }
 
         [Authorize(Roles = "admin")]
         [HttpDelete("{id}", Name = "DeleteSettings")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             if (!User.IsInRole("admin"))
             {
                 return Unauthorized();
             }
-            var setting = _context.Settings.Find(id);
-            if (setting == null)
+
+            var result = await _settingsService.DeleteSettings(id);
+            if (!result)
             {
                 _logger.LogWarning($"Settings com id {id} não encontrado para exclusão.");
                 return NotFound($"Settings com id {id} não encontrado.");
             }
-
-            _context.Settings.Remove(setting);
-            _context.SaveChanges();
 
             return NoContent();
         }
