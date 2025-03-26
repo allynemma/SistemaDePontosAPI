@@ -1,14 +1,10 @@
 ﻿using CsvHelper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SistemaDePontosAPI.Model;
 using SistemaDePontosAPI.Services;
-using System;
 using System.Globalization;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
+using SistemaDePontosAPI.Mensageria;
 
 namespace SistemaDePontosAPI.Controllers
 {
@@ -18,11 +14,13 @@ namespace SistemaDePontosAPI.Controllers
     {
         private readonly ILogger<PunchClockController> _logger;
         private readonly IPunchClockService _punchClockService;
+        private readonly KafkaProducer _kafkaProducer;
 
-        public PunchClockController(ILogger<PunchClockController> logger, IPunchClockService punchClockService)
+        public PunchClockController(ILogger<PunchClockController> logger, IPunchClockService punchClockService, KafkaProducer kafkaProducer)
         {
             _logger = logger;
             _punchClockService = punchClockService;
+            _kafkaProducer = kafkaProducer;
         }
 
         [Authorize]
@@ -58,6 +56,9 @@ namespace SistemaDePontosAPI.Controllers
             }
 
             var punchClock = await _punchClockService.RegisterPunchClock(userId, punchClockType);
+
+            var message = $"Ponto registrado para o usuário {userId} às {punchClock.Timestamp}";
+            await _kafkaProducer.SendMessageAsync(message);
 
             var response = new
             {

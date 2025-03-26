@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaDePontosAPI;
+using SistemaDePontosAPI.Mensageria;
 using System.Text; // Adicione esta linha
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,9 @@ builder.Services.AddAuthentication("Bearer")
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("123456781234567812345678123456781234"))
         };
     });
+
+//mensageria
+builder.Services.AddSingleton(new KafkaProducer("localhost:9092", "punch-clock"));
 
 var app = builder.Build();
 

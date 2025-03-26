@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaDePontosAPI.Mensageria;
 using SistemaDePontosAPI.Model;
 using SistemaDePontosAPI.Services;
 
@@ -11,11 +12,13 @@ namespace SistemaDePontosAPI.Controllers
     {
         private readonly ILogger<UsersController> _logger;
         private readonly IUserService _userService;
+        private readonly KafkaProducer _kafkaProducer;
 
-        public UsersController(ILogger<UsersController> logger, IUserService userService)
+        public UsersController(ILogger<UsersController> logger, IUserService userService, KafkaProducer kafkaProducer)
         {
             _logger = logger;
             _userService = userService;
+            _kafkaProducer = kafkaProducer;
         }
 
         [AllowAnonymous]
@@ -30,6 +33,9 @@ namespace SistemaDePontosAPI.Controllers
 
             var createdUser = await _userService.Register(user);
 
+            var message = $"Usuário {createdUser.Name} criado com sucesso";
+            await _kafkaProducer.SendMessageAsync(message);
+
             var response = new
             {
                 createdUser.Id,
@@ -41,7 +47,7 @@ namespace SistemaDePontosAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost("auth/login")]
-        public IActionResult Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password)
         {
             if (email == null || password == null)
             {
@@ -59,6 +65,9 @@ namespace SistemaDePontosAPI.Controllers
             var token = _userService.GenerateJwtToken(userDb.Email, userDb.Id);
 
             HttpContext.Items["AuthToken"] = token;
+
+            var message = $"Usuário {userDb.Id} logado com sucesso";
+            await _kafkaProducer.SendMessageAsync(message);
 
             var response = new
             {

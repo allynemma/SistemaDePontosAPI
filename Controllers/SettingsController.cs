@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaDePontosAPI.Model;
 using SistemaDePontosAPI.Services;
+using SistemaDePontosAPI.Mensageria;
 using System.Threading.Tasks;
 
 namespace SistemaDePontosAPI.Controllers
@@ -12,11 +13,13 @@ namespace SistemaDePontosAPI.Controllers
     {
         private readonly ILogger<SettingsController> _logger;
         private readonly ISettingsService _settingsService;
+        private readonly KafkaProducer _kafkaProducer;
 
-        public SettingsController(ILogger<SettingsController> logger, ISettingsService settingsService)
+        public SettingsController(ILogger<SettingsController> logger, ISettingsService settingsService, KafkaProducer kafkaProducer)
         {
             _logger = logger;
             _settingsService = settingsService;
+            _kafkaProducer = kafkaProducer;
         }
 
         [Authorize(Roles = "admin")]
@@ -33,6 +36,9 @@ namespace SistemaDePontosAPI.Controllers
                 _logger.LogWarning("Tentativa de criar settings com dados nulos");
                 return BadRequest("Dados inválidos");
             }
+
+            var mensagem = $"Settings criado com sucesso";
+            await _kafkaProducer.SendMessageAsync(mensagem);
 
             var createdSettings = await _settingsService.CreateSettings(settings);
 
@@ -79,6 +85,9 @@ namespace SistemaDePontosAPI.Controllers
                 return NotFound($"Settings com id {id} não encontrado.");
             }
 
+            var mensagem = $"Settings com id {id} atualizado com sucesso";
+            await _kafkaProducer.SendMessageAsync(mensagem);
+
             return Ok(updatedSettings);
         }
 
@@ -97,6 +106,9 @@ namespace SistemaDePontosAPI.Controllers
                 _logger.LogWarning($"Settings com id {id} não encontrado para exclusão.");
                 return NotFound($"Settings com id {id} não encontrado.");
             }
+
+            var mensagem = $"Settings com id {id} excluído com sucesso";
+            await _kafkaProducer.SendMessageAsync(mensagem);
 
             return NoContent();
         }
