@@ -48,10 +48,24 @@ O SistemaDePontosAPI é uma API desenvolvida em .NET 9 que permite gerenciar pon
    <br>
    `dotnet ef database update`
 
-7. Execute o projeto:
+7. Certifique-se que as dependencias da [mensageria](#Mensageria) está funcionando adequadamente.
+   
+8. Execute o projeto:
    <br>
    `dotnet run`
 
+### Mensageria
+1. Certifique-se de que você tenha o Apache Kafka 2.8.0 instalado (ou outra versão em que obtenha o Zookeeper)
+
+2. Abra o cmd e navegue até a pasta de instalação do Kafka
+
+3. Inicie o Zookeeper:
+   `.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties`
+
+4. Deixe-o rodando e abra outro cmd e navegue também até a pasta de instalação.
+
+5. Inicie o Kafka:
+   `.\bin\windows\kafka-server-start.bat .\config\server.properties`
 
 ## Testes
 
